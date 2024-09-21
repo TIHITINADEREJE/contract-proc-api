@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <flow name="contract-proc-api-main">
+        <http:listener config-ref="contract-proc-api-httpListenerConfig" path="${http.path}">
+            <http:response statusCode="#[vars.statusCode default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <logger level="INFO" doc:name="Start logger" doc:id="12bd7554-fea8-400a-ae56-f5742646e593" message="Start logger" />
+		<apikit:router config-ref="contract-proc-api-config" />
+		<error-handler ref="globalErrorHandler" />
+    </flow>
+    <flow name="contract-proc-api-console">
+        <http:listener config-ref="contract-proc-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="contract-proc-api-config" />
+		<error-handler ref="globalErrorHandler" />
+    </flow>
+    <flow name="get:\contract:contract-proc-api-config">
+		<ee:transform doc:name="Transform Message" doc:id="f8d25d03-8ef6-4ca2-9d79-0eefc216ae31">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="field"><![CDATA[p('field.contact')]]></ee:set-variable>
+				<ee:set-variable variableName="Id"><![CDATA[attributes.queryParams.Id]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="get-contractFlow" doc:id="f05bfe0c-385b-4ddc-9b40-259321c6ec95" name="get-contractFlow" />
+    </flow>
+    <flow name="post:\contract:application\json:contract-proc-api-config">
+		<ee:transform doc:name="Transform Message" doc:id="7fec8854-ad54-41f4-84ec-f7cc76ab7077" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="orgPayload" ><![CDATA[payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="post-contractFlow" doc:id="cdba1538-b2e7-4ac1-b7f4-3ab782459721" name="post-contractFlow" />
+    </flow>
+</mule>
