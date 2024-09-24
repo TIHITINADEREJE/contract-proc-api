@@ -39,21 +39,23 @@ vars.orgPayload map (data, index) ->
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-if ((payload[0].created is true) and payload[0].success is true) {message : "Item successfully created",
+if (payload != "DUPLICATE") if ((payload[0].created is true) and payload[0].success is true) {message : "Item successfully created",
   Id : payload[0].Id
 } 
 else if ((payload[0].created is false) and payload[0].success is true) {message : "Item successfully updated",
-  Id : payload[0].Id
-} 
-else {message : payload[0].errors}]]></ee:set-payload>
+  Id : payload[0].Id} 
+else {message : payload[0].errors}
+	else {message : payload}
+]]></ee:set-payload>
 					</ee:message>
 					<ee:variables >
 						<ee:set-variable variableName="statusCode" ><![CDATA[%dw 2.0
 output application/java
 ---
-if ((payload[0].created is true) and payload[0].success is true) 201 
+if (payload != "DUPLICATE") if ((payload[0].created is true) and payload[0].success is true) 201 
 else if ((payload[0].created is false) and payload[0].success is true) 200
-else 500 ]]></ee:set-variable>
+else 500 
+else 500]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
 			</when>
